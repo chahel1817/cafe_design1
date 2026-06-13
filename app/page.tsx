@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, useCallback, Suspense } from 'react';
+import React, { useEffect, useRef, useState, useCallback, Suspense } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import Lenis from 'lenis';
@@ -433,26 +433,34 @@ function HomeContent() {
       </div>
     </section>
 
-    {/* DRINK JOURNEY */}
+    {/* DRINK JOURNEY — Storytelling Timeline */}
     <section className="drink-journey">
       <motion.div className="section-label" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fade}>The Process</motion.div>
       <motion.div className="menu-title" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fade}>From bean to cup.</motion.div>
       <div className="drink-steps">
         {[
-          { img: '/sourced_process.png', num: '01', title: 'Sourced', desc: 'Hand-picked from organic farms in Coorg and Araku Valley' },
-          { img: '/selected_process.png', num: '02', title: 'Selected', desc: 'Only the top 5% of beans make it through our quality check' },
-          { img: '/roasted_process.png', num: '03', title: 'Roasted', desc: 'Small-batch roasted in-house, three times every week' },
-          { img: '/served_process.png', num: '04', title: 'Served', desc: 'Brewed to order and served within 90 seconds' },
-        ].map((s, i) => (
-          <motion.div key={i} className="drink-step" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fade}>
-            <div className="drink-step-img-box">
-              <Image src={s.img} alt={s.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 25vw" />
-              <div className="drink-step-number">{s.num}</div>
-              <div className="drink-step-overlay" />
-            </div>
-            <div className="drink-step-title">{s.title}</div>
-            <div className="drink-step-desc">{s.desc}</div>
-          </motion.div>
+          { img: '/sourced_process.png', num: '01', label: 'Step One', title: 'Sourced', desc: 'Hand-picked from organic farms in Coorg and Araku Valley. We visit every farm, meet every grower, and trace every harvest back to its elevation.' },
+          { img: '/selected_process.png', num: '02', label: 'Step Two', title: 'Selected', desc: 'Only the top 5% of beans make it through our quality check. Each batch is cupped, scored, and profiled before we commit.' },
+          { img: '/roasted_process.png', num: '03', label: 'Step Three', title: 'Roasted', desc: 'Small-batch roasted in-house, three times every week. Nothing on our shelf is older than five days. Ever.' },
+          { img: '/served_process.png', num: '04', label: 'Step Four', title: 'Served', desc: 'Brewed to order and served within 90 seconds. Each cup is pulled at the exact temperature and grind for its origin.' },
+        ].map((s, i, arr) => (
+          <React.Fragment key={i}>
+            <motion.div className="drink-step" initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-10%' }} custom={0} variants={fade}>
+              <div className="drink-step-img-box">
+                <Image src={s.img} alt={s.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 100vw, 45vw" />
+                <div className="drink-step-overlay" />
+              </div>
+              <div className="drink-step-node">
+                <div className="drink-step-number">{s.num}</div>
+              </div>
+              <div className="drink-step-content">
+                <div className="drink-step-label">{s.label}</div>
+                <div className="drink-step-title">{s.title}</div>
+                <div className="drink-step-desc">{s.desc}</div>
+              </div>
+            </motion.div>
+            {i < arr.length - 1 && <div className="drink-step-arrow" />}
+          </React.Fragment>
         ))}
       </div>
     </section>
