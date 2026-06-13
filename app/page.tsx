@@ -37,6 +37,40 @@ const wordV = {
   visible: (i: number) => ({ y: 0, opacity: 1, transition: { duration: 0.8, delay: 1.8 + i * 0.15, ease: [0.76, 0, 0.24, 1] as const } }),
 };
 
+/* ── CUSTOM MONOGRAM COFFEE BEAN (G) ── */
+function GBeanIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 48 48" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg" 
+      className={className}
+    >
+      <path 
+        d="M24 4C13 4 5 13 5 24C5 35 13 44 24 44C35 44 43 35 43 24C43 13 35 4 24 4Z" 
+        stroke="currentColor" 
+        strokeWidth="3.2" 
+        strokeLinecap="round" 
+      />
+      <path 
+        d="M24 10C19 16 19 22 23 26C27 30 33 29 33 24C33 19 29 18 24 18H18" 
+        stroke="currentColor" 
+        strokeWidth="3.2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+      />
+      <path 
+        d="M24 38C23.5 35 23.5 32 24 28" 
+        stroke="currentColor" 
+        strokeWidth="3.2" 
+        strokeLinecap="round" 
+      />
+    </svg>
+  );
+}
+
 /* ── STUNNING 3D SVG COFFEE BEAN COMPONENT ── */
 function GiantCoffeeBean() {
   return (
@@ -89,6 +123,7 @@ function StatCell({ target, suffix, label }: { target: number; suffix: string; l
     const obs = new IntersectionObserver(([e]) => {
       if (!e.isIntersecting || counted.current) return;
       counted.current = true;
+        el.classList.add('counted');   
       const dur = 1800, start = performance.now();
       const tick = (now: number) => {
         const p = Math.min((now - start) / dur, 1), ease = 1 - Math.pow(1 - p, 3);
@@ -110,6 +145,29 @@ export default function Home() {
   const [activeNav, setActiveNav] = useState('');
   const [galleryImg, setGalleryImg] = useState('/interior.png');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [time, setTime] = useState('');
+  const [isOpen, setIsOpen] = useState(true);
+
+  // Dynamic Ahmedabad Local Time & Open Status
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const ist = new Date(utc + (3600000 * 5.5));
+      let hours = ist.getHours();
+      const minutes = ist.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const minStr = minutes < 10 ? '0' + minutes : minutes;
+      setTime(`${hours}:${minStr} ${ampm}`);
+      const istHours = ist.getHours();
+      setIsOpen(istHours >= 7 && istHours < 23);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const mx = useMotionValue(-100), my = useMotionValue(-100);
   const sx = useSpring(mx, { damping: 20, stiffness: 250 }), sy = useSpring(my, { damping: 20, stiffness: 250 });
@@ -146,7 +204,7 @@ export default function Home() {
 
   const magnetRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => { const t = setTimeout(() => setLoaded(true), 1800); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setTimeout(() => setLoaded(true), 2200); return () => clearTimeout(t); }, []);
 
   // Lenis
   useEffect(() => {
@@ -193,11 +251,23 @@ export default function Home() {
   const onMagLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = ''; }, []);
 
   return (<>
-    {/* LOADER */}
+    {/* LOADER v2 */}
     <div className={`loader ${loaded ? 'done' : ''}`}>
-      <div className="loader-logo">GROVE</div>
-      <div className="loader-bean">🫘</div>
-      <div className="loader-line" />
+      <div className="loader-curtain-top" />
+      <div className="loader-curtain-bot" />
+      <div className="loader-inner">
+        <div className="loader-bean"><GBeanIcon size={32} /></div>
+        <div className="loader-word">
+          <span className="loader-letter"><span>G</span></span>
+          <span className="loader-letter"><span>R</span></span>
+          <span className="loader-letter"><span>O</span></span>
+          <span className="loader-letter"><span>V</span></span>
+          <span className="loader-letter"><span>E</span></span>
+        </div>
+        <div className="loader-line" />
+        <div className="loader-tag">Farm to Cup</div>
+      </div>
+      <div className="loader-progress" />
     </div>
 
     {/* CURSOR */}
@@ -207,7 +277,7 @@ export default function Home() {
         <motion.div className="cursor-ring" style={{ left: rx, top: ry }} />
         <motion.div className="mouse-glow" style={{ left: sx, top: sy }} />
         {/* Subtle following bean path particles */}
-        <motion.div className="cursor-bean" style={{ left: bx1, top: by1 }}>🫘</motion.div>
+        <motion.div className="cursor-bean" style={{ left: bx1, top: by1 }}><GBeanIcon size={11} /></motion.div>
         <motion.div className="cursor-bean" style={{ left: bx2, top: by2 }}>·</motion.div>
         <motion.div className="cursor-bean" style={{ left: bx3, top: by3 }}>◦</motion.div>
       </>
@@ -356,13 +426,17 @@ export default function Home() {
       <motion.div className="menu-title" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fade}>From bean to cup.</motion.div>
       <div className="drink-steps">
         {[
-          { icon: '🌱', title: 'Sourced', desc: 'Hand-picked from organic farms in Coorg and Araku Valley' },
-          { icon: '🫘', title: 'Selected', desc: 'Only the top 5% of beans make it through our quality check' },
-          { icon: '🔥', title: 'Roasted', desc: 'Small-batch roasted in-house, three times every week' },
-          { icon: '☕', title: 'Served', desc: 'Brewed to order and served within 90 seconds' },
+          { img: '/sourced_process.png', num: '01', title: 'Sourced', desc: 'Hand-picked from organic farms in Coorg and Araku Valley' },
+          { img: '/selected_process.png', num: '02', title: 'Selected', desc: 'Only the top 5% of beans make it through our quality check' },
+          { img: '/roasted_process.png', num: '03', title: 'Roasted', desc: 'Small-batch roasted in-house, three times every week' },
+          { img: '/served_process.png', num: '04', title: 'Served', desc: 'Brewed to order and served within 90 seconds' },
         ].map((s, i) => (
           <motion.div key={i} className="drink-step" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fade}>
-            <div className="drink-step-icon">{s.icon}</div>
+            <div className="drink-step-img-box">
+              <Image src={s.img} alt={s.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 25vw" />
+              <div className="drink-step-number">{s.num}</div>
+              <div className="drink-step-overlay" />
+            </div>
             <div className="drink-step-title">{s.title}</div>
             <div className="drink-step-desc">{s.desc}</div>
           </motion.div>
@@ -372,14 +446,36 @@ export default function Home() {
 
     {/* MOOD WORDS */}
     <div className="mood-section">
-      <motion.div className="mood-grid" initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        {['Work.', 'Relax.', 'Connect.', 'Sip.'].map((w, i) => (
-          <motion.div key={w} className="mood-card" custom={i} variants={fade}>
-            <div className="mood-word">{w}</div>
-          </motion.div>
-        ))}
-      </motion.div>
-    </div>
+  <div className="mood-grid">
+    <blockquote style={{
+      fontFamily: 'var(--font-syne), sans-serif',
+      fontSize: 'clamp(28px, 5vw, 64px)',
+      fontWeight: 800,
+      color: 'var(--text)',
+      letterSpacing: '-.04em',
+      lineHeight: 1.1,
+      position: 'relative',
+      zIndex: 1,
+    }}>
+      Slow down.{' '}
+      <span style={{ color: 'var(--accent)' }}>The coffee</span>{' '}
+      is worth it.
+    </blockquote>
+    <cite style={{
+      display: 'block',
+      marginTop: 24,
+      fontStyle: 'normal',
+      fontSize: 12,
+      letterSpacing: '.12em',
+      textTransform: 'uppercase',
+      color: 'var(--muted)',
+      position: 'relative',
+      zIndex: 1,
+    }}>
+      — Grove, Ahmedabad
+    </cite>
+  </div>
+</div>
 
     {/* GALLERY SPLIT */}
     <section className="gallery-section" id="gallery">
@@ -406,15 +502,28 @@ export default function Home() {
         <motion.div className="section-label" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fade}>What people say</motion.div>
         <motion.div className="reviews-title" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fade}>1,200+ reviews. All earned.</motion.div>
       </div>
-      <div className="marquee-track">
-        {[...reviews, ...reviews].map((r, i) => (
-          <div key={i} className="review-card">
-            <div className="review-stars">★★★★★</div>
-            <p className="review-text">{r.text}</p>
-            <div className="review-author">{r.author}</div>
-          </div>
-        ))}
+      <div className="marquee-outer">
+  {/* Row 1 — left scroll */}
+  <div className="marquee-track">
+    {[...reviews, ...reviews].map((r, i) => (
+      <div key={i} className="review-card">
+        <div className="review-stars">★★★★★</div>
+        <p className="review-text">{r.text}</p>
+        <div className="review-author">{r.author}</div>
       </div>
+    ))}
+  </div>
+  {/* Row 2 — right scroll (reverse) */}
+  <div className="marquee-track reverse">
+    {[...reviews.slice().reverse(), ...reviews.slice().reverse()].map((r, i) => (
+      <div key={i} className="review-card">
+        <div className="review-stars">★★★★★</div>
+        <p className="review-text">{r.text}</p>
+        <div className="review-author">{r.author}</div>
+      </div>
+    ))}
+  </div>
+</div>
     </section>
 
     {/* GIANT STATS */}
@@ -451,32 +560,77 @@ export default function Home() {
 
     {/* FOOTER */}
     <footer className="site-footer">
-      <div className="footer-top">
-        <div>
-          <div className="footer-brand">GROVE</div>
-          <div className="footer-tagline">Farm to cup. Single-origin coffee roasted in Ahmedabad.</div>
+      <div className="footer-container">
+        <div className="footer-main-grid">
+          {/* Brand & Status */}
+          <div className="footer-brand-col">
+            <div className="footer-brand">GROVE</div>
+            <p className="footer-tagline">
+              Farm to cup. Single-origin coffee roasted with intention in Ahmedabad.
+            </p>
+            <div className="footer-status-widget">
+              <div className="status-dot-wrapper">
+                <span className={`status-dot ${isOpen ? 'open' : 'closed'}`} />
+                <span className="status-text">{isOpen ? 'Open Now' : 'Closed'}</span>
+              </div>
+              <div className="status-time">
+                Ahmedabad Local Time: <span>{time || '7:00 AM'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Columns */}
+          <div className="footer-nav-grid">
+            <div className="footer-nav-col">
+              <h4>Explore</h4>
+              <a href="#menu">Menu</a>
+              <a href="#story">Our Story</a>
+              <a href="#gallery">Gallery</a>
+              <a href="#reviews">Reviews</a>
+            </div>
+            <div className="footer-nav-col">
+              <h4>Visit</h4>
+              <a href="#location">Location</a>
+              <a onClick={() => setModal(true)} style={{ cursor: 'pointer' }}>Reserve a Table</a>
+              <a href="#location">Hours & Directions</a>
+            </div>
+            <div className="footer-nav-col">
+              <h4>Socials</h4>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
+              <a href="https://spotify.com" target="_blank" rel="noopener noreferrer">Spotify Playlist</a>
+              <a href="mailto:hello@grove.cafe">hello@grove.cafe</a>
+            </div>
+          </div>
+
+          {/* Newsletter Column */}
+          <div className="footer-news-col">
+            <h4>Freshly Brewed Inbox</h4>
+            <p className="news-desc">Subscribe for early access to micro-lot roasts, tasting notes, and secret weekend bakes.</p>
+            <form className="footer-news-form" onSubmit={(e) => { e.preventDefault(); alert('Thank you for subscribing!'); }}>
+              <input type="email" placeholder="Your email address" className="news-input" required />
+              <button type="submit" className="news-submit-btn">
+                <span>Join</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </form>
+          </div>
         </div>
-        <div className="footer-nav">
-          <div className="footer-nav-col">
-            <h4>Explore</h4>
-            <a href="#menu">Menu</a><a href="#story">Our Story</a><a href="#gallery">Gallery</a>
+
+        <div className="footer-divider" />
+
+        {/* Bottom Bar */}
+        <div className="footer-bottom-bar">
+          <div className="footer-bottom-left">
+            <span className="footer-copy">© {new Date().getFullYear()} Grove Cafe. All rights reserved.</span>
+            <div className="footer-bottom-links">
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+            </div>
           </div>
-          <div className="footer-nav-col">
-            <h4>Visit</h4>
-            <a href="#location">Location</a><a href="#reviews">Reviews</a><a onClick={() => setModal(true)} style={{ cursor: 'pointer' }}>Reserve</a>
-          </div>
-          <div className="footer-nav-col">
-            <h4>Connect</h4>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter</a>
-            <a href="mailto:hello@grove.cafe">Email</a>
-          </div>
-        </div>
-      </div>
-      <div className="footer-bottom">
-        <span className="footer-copy">© 2024 Grove Cafe, Ahmedabad. All rights reserved.</span>
-        <div className="footer-social">
-          <a href="#">Instagram</a><a href="#">Twitter</a><a href="#">LinkedIn</a>
+          <button className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <span>Back to top</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
         </div>
       </div>
     </footer>
