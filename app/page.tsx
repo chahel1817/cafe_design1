@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, Suspense } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 import Lenis from 'lenis';
 import Image from 'next/image';
 import './home.css';
@@ -114,30 +115,44 @@ function GiantCoffeeBean() {
   );
 }
 
-function StatCell({ target, suffix, label }: { target: number; suffix: string; label: string }) {
+function StatCell({ target, suffix, label, decimals = 0 }: { target: number; suffix: string; label: string; decimals?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [v, setV] = useState('0' + suffix);
+  const [v, setV] = useState(decimals > 0 ? '0.' + '0'.repeat(decimals) + suffix : '0' + suffix);
   const counted = useRef(false);
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const obs = new IntersectionObserver(([e]) => {
       if (!e.isIntersecting || counted.current) return;
       counted.current = true;
-        el.classList.add('counted');   
+      el.classList.add('counted');
       const dur = 1800, start = performance.now();
       const tick = (now: number) => {
         const p = Math.min((now - start) / dur, 1), ease = 1 - Math.pow(1 - p, 3);
-        setV((target >= 1000 ? Math.round(ease * target).toLocaleString('en-IN') : String(Math.round(ease * target))) + suffix);
+        const raw = ease * target;
+        let display: string;
+        if (decimals > 0) {
+          display = raw.toFixed(decimals);
+        } else if (target >= 1000) {
+          display = Math.round(raw).toLocaleString('en-IN');
+        } else {
+          display = String(Math.round(raw));
+        }
+        setV(display + suffix);
         if (p < 1) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-    }, { threshold: 0.3 });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
     obs.observe(el); return () => obs.disconnect();
-  }, [target, suffix]);
+  }, [target, suffix, decimals]);
   return <div className="stat-cell" ref={ref}><div className="stat-cell-num">{v}</div><div className="stat-cell-label">{label}</div></div>;
 }
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const cafeName = searchParams.get('cafe') || 'GROVE';
+  const cafeNameUpper = cafeName.toUpperCase();
+  const cafeNameTitle = cafeName.charAt(0).toUpperCase() + cafeName.slice(1);
+
   const [loaded, setLoaded] = useState(false);
   const [modal, setModal] = useState(false);
   const [hovMenu, setHovMenu] = useState<number | null>(null);
@@ -258,11 +273,9 @@ export default function Home() {
       <div className="loader-inner">
         <div className="loader-bean"><GBeanIcon size={32} /></div>
         <div className="loader-word">
-          <span className="loader-letter"><span>G</span></span>
-          <span className="loader-letter"><span>R</span></span>
-          <span className="loader-letter"><span>O</span></span>
-          <span className="loader-letter"><span>V</span></span>
-          <span className="loader-letter"><span>E</span></span>
+          {cafeNameUpper.split('').map((letter, i) => (
+            <span key={i} className="loader-letter" style={{ animationDelay: `${0.05 + i * 0.07}s` }}><span style={{ animationDelay: `${0.05 + i * 0.07}s` }}>{letter}</span></span>
+          ))}
         </div>
         <div className="loader-line" />
         <div className="loader-tag">Farm to Cup</div>
@@ -285,7 +298,7 @@ export default function Home() {
 
     {/* NAVBAR */}
     <nav className={`navbar ${navScr ? 'scrolled' : ''}`}>
-      <a href="#hero" className="nav-logo">GROVE</a>
+      <a href="#hero" className="nav-logo">{cafeNameUpper}</a>
       <ul className="nav-links">
         {[['story','Story'],['menu','Menu'],['gallery','Gallery'],['reviews','Reviews'],['location','Visit']].map(([id,l]) => (
           <li key={id}><a href={`#${id}`} className={activeNav === id ? 'active' : ''}>{l}</a></li>
@@ -329,9 +342,9 @@ export default function Home() {
         <motion.div className="hero-eyebrow" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.6, duration: 0.5 }}>
           <span className="dot" /> Farm to cup · Ahmedabad
         </motion.div>
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {['Coffee', 'grown', 'close', 'to earth.'].map((w, i) => (
-            <motion.span key={w} className={`hero-word ${w === 'close' ? 'accent' : ''}`} custom={i} initial="hidden" animate="visible" variants={wordV}>{w}</motion.span>
+            <motion.div key={w} className={`hero-word ${w === 'close' ? 'accent' : ''}`} custom={i} initial="hidden" animate="visible" variants={wordV}>{w}</motion.div>
           ))}
         </div>
         <motion.p className="hero-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2.5, duration: 0.5 }}>
@@ -472,7 +485,7 @@ export default function Home() {
       position: 'relative',
       zIndex: 1,
     }}>
-      — Grove, Ahmedabad
+      — {cafeNameTitle}, Ahmedabad
     </cite>
   </div>
 </div>
@@ -534,7 +547,7 @@ export default function Home() {
     </div>
 
     <div className="stats-row">
-      <StatCell target={4} suffix=".8★" label="Google Rating" />
+      <StatCell target={4.8} suffix="★" label="Google Rating" decimals={1} />
       <StatCell target={14} suffix="" label="Farm Partners" />
       <StatCell target={6} suffix=" Years" label="In Ahmedabad" />
     </div>
@@ -564,7 +577,7 @@ export default function Home() {
         <div className="footer-main-grid">
           {/* Brand & Status */}
           <div className="footer-brand-col">
-            <div className="footer-brand">GROVE</div>
+            <div className="footer-brand">{cafeNameUpper}</div>
             <p className="footer-tagline">
               Farm to cup. Single-origin coffee roasted with intention in Ahmedabad.
             </p>
@@ -621,7 +634,7 @@ export default function Home() {
         {/* Bottom Bar */}
         <div className="footer-bottom-bar">
           <div className="footer-bottom-left">
-            <span className="footer-copy">© {new Date().getFullYear()} Grove Cafe. All rights reserved.</span>
+            <span className="footer-copy">© {new Date().getFullYear()} {cafeNameTitle} Cafe. All rights reserved.</span>
             <div className="footer-bottom-links">
               <a href="#">Privacy Policy</a>
               <a href="#">Terms of Service</a>
@@ -661,4 +674,12 @@ export default function Home() {
       )}
     </AnimatePresence>
   </>);
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
+  );
 }
