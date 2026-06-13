@@ -267,14 +267,21 @@ function HomeContent() {
 
   return (<>
     {/* LOADER v2 */}
-    <div className={`loader ${loaded ? 'done' : ''}`}>
+    <div 
+      className={`loader ${loaded ? 'done' : ''}`} 
+      style={{ '--char-count': cafeNameUpper.length } as React.CSSProperties}
+    >
       <div className="loader-curtain-top" />
       <div className="loader-curtain-bot" />
       <div className="loader-inner">
         <div className="loader-bean"><GBeanIcon size={32} /></div>
         <div className="loader-word">
           {cafeNameUpper.split('').map((letter, i) => (
-            <span key={i} className="loader-letter" style={{ animationDelay: `${0.05 + i * 0.07}s` }}><span style={{ animationDelay: `${0.05 + i * 0.07}s` }}>{letter}</span></span>
+            <span key={i} className="loader-letter" style={{ animationDelay: `${0.05 + i * 0.07}s` }}>
+              <span style={{ animationDelay: `${0.05 + i * 0.07}s` }}>
+                {letter === ' ' ? '\u00a0' : letter}
+              </span>
+            </span>
           ))}
         </div>
         <div className="loader-line" />
@@ -445,7 +452,7 @@ function HomeContent() {
           { img: '/served_process.png', num: '04', label: 'Step Four', title: 'Served', desc: 'Brewed to order and served within 90 seconds. Each cup is pulled at the exact temperature and grind for its origin.' },
         ].map((s, i, arr) => (
           <React.Fragment key={i}>
-            <motion.div className="drink-step" initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-10%' }} custom={0} variants={fade}>
+            <motion.div className={`drink-step ${i % 2 === 1 ? 'step-even' : ''}`} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-10%' }} custom={0} variants={fade}>
               <div className="drink-step-img-box">
                 <Image src={s.img} alt={s.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 100vw, 45vw" />
                 <div className="drink-step-overlay" />

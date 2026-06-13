@@ -88,7 +88,7 @@ body {
 .loader-letter {
   display: block;
   font-family: var(--heading);
-  font-size: clamp(64px, 12vw, 120px);
+  font-size: clamp(14px, min(12vw, 90vw / var(--char-count, 8)), 120px);
   font-weight: 800;
   color: var(--primary);
   letter-spacing: -.04em;
@@ -201,6 +201,10 @@ body {
   font-size: 18px; font-weight: 800;
   color: var(--primary); letter-spacing: -.03em;
   text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: calc(100% - 70px);
 }
 .nav-links {
   display: flex; gap: 32px;
@@ -737,29 +741,33 @@ body {
   flex-direction: column;
   gap: 14px;
 }
-/* odd steps: image left, text right */
-.drink-step:nth-child(odd) .drink-step-img-box {
+/* default steps: image left, text right */
+.drink-step .drink-step-img-box {
   grid-column: 1;
 }
-.drink-step:nth-child(odd) .drink-step-node {
+.drink-step .drink-step-node {
   grid-column: 2;
 }
-.drink-step:nth-child(odd) .drink-step-content {
+.drink-step .drink-step-content {
   grid-column: 3;
   padding-left: 40px;
 }
-/* even steps: text left, image right */
-.drink-step:nth-child(even) .drink-step-content {
+/* even steps (via class): text left, image right */
+.drink-step.step-even .drink-step-content {
   grid-column: 1;
+  grid-row: 1;
   text-align: right;
   align-items: flex-end;
   padding-right: 40px;
+  padding-left: 0;
 }
-.drink-step:nth-child(even) .drink-step-node {
+.drink-step.step-even .drink-step-node {
   grid-column: 2;
+  grid-row: 1;
 }
-.drink-step:nth-child(even) .drink-step-img-box {
+.drink-step.step-even .drink-step-img-box {
   grid-column: 3;
+  grid-row: 1;
 }
 
 .drink-step-label {
@@ -783,7 +791,7 @@ body {
   font-size: 14px; color: var(--muted);
   line-height: 1.7; max-width: 340px;
 }
-.drink-step:nth-child(even) .drink-step-desc {
+.drink-step.step-even .drink-step-desc {
   margin-left: auto;
 }
 
@@ -808,15 +816,17 @@ body {
 .drink-step:hover::before {
   opacity: 1;
 }
-.drink-step:nth-child(odd)::before {
+.drink-step::before {
   left: 0;
 }
-.drink-step:nth-child(even)::before {
+.drink-step.step-even::before {
+  left: auto;
   right: 0;
 }
 
 /* ── RESPONSIVE — storytelling timeline ────── */
 @media (max-width: 900px) {
+  .drink-journey { padding: 72px 24px 80px; }
   .drink-steps::before {
     left: 26px;
   }
@@ -827,22 +837,24 @@ body {
   }
   .drink-step-node {
     grid-column: 1 !important;
-    grid-row: 1 / 3;
+    grid-row: 1 / 3 !important;
     align-self: start;
     padding-top: 4px;
   }
   .drink-step-img-box {
     grid-column: 2 !important;
+    grid-row: auto !important;
     height: 220px;
     margin-left: 20px;
   }
   .drink-step-content {
     grid-column: 2 !important;
+    grid-row: auto !important;
     text-align: left !important;
     align-items: flex-start !important;
     padding: 16px 0 0 20px !important;
   }
-  .drink-step:nth-child(even) .drink-step-desc {
+  .drink-step.step-even .drink-step-desc {
     margin-left: 0;
   }
   .drink-step::before { display: none; }
@@ -1170,9 +1182,11 @@ body {
 
 .footer-brand {
   font-family: var(--heading);
-  font-size: clamp(48px, 6vw, 84px);
+  font-size: clamp(32px, 6vw, 84px);
   font-weight: 800; color: var(--primary);
   letter-spacing: -.05em; line-height: .9;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .footer-tagline {
